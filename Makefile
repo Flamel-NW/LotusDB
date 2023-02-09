@@ -3,7 +3,7 @@ SOURCES := main.c \
 
 OBJECTS := $(SOURCES:.c=.o)
 
-INCLUDE := -I ./skiplist
+INCLUDE := -I ./skiplist -I ./
 
 LotusDB: $(OBJECTS)
 	$(CC) $(INCLUDE) $^ -o $@
