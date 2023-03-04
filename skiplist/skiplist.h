@@ -5,25 +5,29 @@
 #include <stdlib.h>
 
 #include "pch.h"
+#include "wal_entry.h"
 
 typedef struct skip_list_node {
-
-    uint32_t key_size;
-    char key[KEY_MAX_LEN];
-
-    uint32_t value_size;
-    char value[VALUE_MAX_LEN];
+    WalEntry* wal_entry;
 
     struct skip_list_level {
         struct skip_list_node* next;
     } levels[];
-    
 } SkipListNode;
 
 typedef struct skip_list {
     SkipListNode* head;
+
     uint32_t length;
     uint32_t level;
 } SkipList;
+
+SkipListNode* initSkipListNode();
+
+SkipList* initSkipList();
+
+void addWalEntryToSkipList(SkipList* skip_list, WalEntry* wal_entry);
+
+WalEntry* getWalEntryFromSkipList(SkipList* skip_list, const char* key);
 
 #endif

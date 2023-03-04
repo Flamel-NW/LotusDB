@@ -1,15 +1,23 @@
 SOURCES := main.c \
-	./skiplist/skiplist.c
+	LotusDB.c \
+	./pch/pch.c \
+	./skiplist/skiplist.c \
+	./memtable/memtable.c \
+	./wal/wal_entry.c
 
 OBJECTS := $(SOURCES:.c=.o)
 
-INCLUDE := -I ./skiplist -I ./
+INCLUDE := -I ./ \
+	-I ./pch \
+	-I ./skiplist \
+	-I ./memtable \
+	-I ./wal 
 
 LotusDB: $(OBJECTS)
-	$(CC) $(INCLUDE) $^ -o $@
+	$(CC) -g $(INCLUDE) $^ -o $@
 
 clean:
 	rm -f LotusDB $(OBJECTS) compile_commands.json
 
 %.o: %.c
-	$(CC) $(INCLUDE) -o $@ -c $<
+	$(CC) -g $(INCLUDE) -o $@ -c $<
