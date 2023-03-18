@@ -14,12 +14,16 @@
 #define KEY_MAX_LEN 32
 #define VALUE_MAX_LEN 256
 
-#define WAL_PATH "./log/wal"
+#define WAL_NAME "./log/wal"
 
 #define max(a,b) ((a) > (b) ? (a) : (b))
 #define min(a,b) ((a) < (b) ? (a) : (b))
 
-#define STDERR(format, ...) fprintf(stderr, format, ##__VA_ARGS__ ); putchar('\n');
+#define STDERR(format, ...) do { \
+    fprintf(stderr, format, ##__VA_ARGS__ ); \
+    fputc('\n', stderr); \
+} while(0)
+
 #define STDERR_FUNC_LINE() \
     STDERR("file: %s, func: %s, line: %d", __FILE__, __func__, __LINE__);
 

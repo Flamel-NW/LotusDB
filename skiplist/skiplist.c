@@ -21,8 +21,8 @@ SkipList* initSkipList() {
     
     WalEntry* wal_entry = (WalEntry*) malloc(sizeof(WalEntry));
     bzero(&(wal_entry->header), sizeof(WalHeader));
-    wal_entry->key = strdup("head key");
-    wal_entry->value = strdup("head value");
+    wal_entry->key = strdup("\0");
+    wal_entry->value = strdup("\0");
     skip_list->head = initSkipListNode(SKIP_LIST_MAX_LEVEL, wal_entry);
 
     for (int32_t i = 0; i < SKIP_LIST_MAX_LEVEL; i++)
@@ -38,6 +38,13 @@ SkipListNode* initSkipListNode(uint32_t level, WalEntry* wal_entry) {
 }
 
 void addWalEntryToSkipList(SkipList* skip_list, WalEntry* wal_entry) {
+    WalEntry* temp = getWalEntryFromSkipList(skip_list, wal_entry->key);
+    if (temp) { // 已经有了这个key, 直接替换value
+        free(temp->value);
+        temp->value = strdup(wal_entry->value);
+        return;
+    }
+
     SkipListNode *p = skip_list->head;
     int32_t levelIdx = skip_list->level - 1;
     SkipListNode* pre_nodes[SKIP_LIST_MAX_LEVEL];   // 保存待插入节点的所有前驱节点的值
@@ -81,4 +88,30 @@ WalEntry* getWalEntryFromSkipList(SkipList* skip_list, const char* key) {
     return NULL;
 }
 
+void readSkipListFromWal(SkipList* skip_list, FILE* wal) {
+    WalEntry* wal_entry = readWalEntryFromWal(wal);
+    while (wal_entry) {
+        addWalEntryToSkipList(skip_list, wal_entry);
+        wal_entry = readWalEntryFromWal(wal);
+    }
+}
 
+void writeSkipListToWal(SkipList* skip_list, FILE* wal) {
+    SkipListNode* skip_list_node = skip_list->head->levels[0].next;
+    while (skip_list_node) {
+        writeWalEntryToWal(skip_list_node->wal_entry, wal);
+        skip_list_node = skip_list_node->levels[0].next;
+    }
+}
+
+void delSkipList(SkipList* skip_list) {
+    SkipListNode* now = skip_list->head->levels[0].next;
+    SkipListNode* pre;
+    while (now) {
+        pre = now;
+        now = now->levels[0].next;
+        free(pre);
+    }
+    free(skip_list->head);
+    free(skip_list);
+}

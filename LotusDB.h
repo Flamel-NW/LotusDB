@@ -14,4 +14,6 @@ void addLotusDB(LotusDB *db, const char* key, const char* value);
 
 char* getLotusDB(LotusDB *db, const char* key);
 
+void delLotusDb(LotusDB* db);
+
 #endif

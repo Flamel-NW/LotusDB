@@ -6,34 +6,27 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 Memtable* initMemtable() {
     Memtable* memtable = (Memtable*) malloc(sizeof(Memtable));
     memtable->skip_list = initSkipList();
     pthread_rwlock_init(&memtable->rwlock, NULL);
-
-    char timestamp[FILENAME_MAX_LEN];
-    sprintf(timestamp, "%s/%ld", WAL_PATH, getTimestamp());
-
-    // TODO:
-    // memtable->fp = fopen(timestamp, "w");
-
+    memtable->fp = fopen(WAL_NAME, "r");
+    if (memtable->fp) {
+        readSkipListFromWal(memtable->skip_list, memtable->fp);
+        fclose(memtable->fp);
+        memtable->fp = fopen(WAL_NAME, "a");
+    } else {
+        memtable->fp = fopen(WAL_NAME, "w");
+    }
     return memtable;
 }
 
-Memtable* initMemtableFromWal(FILE* wal) {
-    Memtable* memtable = (Memtable*) malloc(sizeof(Memtable));
-    memtable->skip_list = initSkipList();
-    pthread_rwlock_init(&memtable->rwlock, NULL);
+void delMemtable(Memtable* memtable) {
+    writeSkipListToWal(memtable->skip_list, memtable->fp);
+    delSkipList(memtable->skip_list);
 
-    pthread_rwlock_wrlock(&memtable->rwlock);
-    memtable->fp = wal;
-    WalEntry* wal_entry;
-    while ((wal_entry = readWalEntryFromWal(memtable->fp))) 
-        addWalEntryToSkipList(memtable->skip_list, wal_entry);
-    pthread_rwlock_unlock(&memtable->rwlock);
-
-    return memtable;
+    pthread_rwlock_destroy(&memtable->rwlock);
+    fclose(memtable->fp);
 }
-
-

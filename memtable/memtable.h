@@ -12,6 +12,6 @@ typedef struct memtable {
 
 Memtable* initMemtable();
 
-Memtable* initMemtableFromWal(FILE* wal);
+void delMemtable(Memtable* memtable);
 
 #endif

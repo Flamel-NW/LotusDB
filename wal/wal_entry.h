@@ -20,6 +20,8 @@ WalEntry* initWalEntry(const char* key, const char* value);
 
 WalEntry* readWalEntryFromWal(FILE* wal);
 
-void writeWalEntryToWal(WalEntry wal_entry, FILE* wal);
+void writeWalEntryToWal(WalEntry* wal_entry, FILE* wal);
+
+void delWalEntry(WalEntry* wal_entry);
 
 #endif

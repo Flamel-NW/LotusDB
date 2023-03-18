@@ -2,6 +2,7 @@
 #define SKIPLIST_H
 
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "pch.h"
@@ -29,5 +30,11 @@ SkipList* initSkipList();
 void addWalEntryToSkipList(SkipList* skip_list, WalEntry* wal_entry);
 
 WalEntry* getWalEntryFromSkipList(SkipList* skip_list, const char* key);
+
+void readSkipListFromWal(SkipList* skip_list, FILE* wal);
+
+void writeSkipListToWal(SkipList* skip_list, FILE* wal);
+
+void delSkipList(SkipList* skip_list);
 
 #endif

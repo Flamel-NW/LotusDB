@@ -1,5 +1,6 @@
 #include "LotusDB.h"
 #include "memtable.h"
+#include "pch.h"
 #include "skiplist.h"
 #include "wal_entry.h"
 
@@ -12,11 +13,7 @@ LotusDB* initLotusDb() {
     DIR* dir;
     struct dirent* dirent;
 
-    dir = opendir(WAL_PATH);
-
-    // while ((dirent = readdir(dir))) {
-    //     // TODO:
-    // }
+    dir = opendir(WAL_NAME);
 
     db->Memtable = initMemtable();
 
@@ -30,4 +27,9 @@ void addLotusDB(LotusDB *db, const char* key, const char* value) {
 
 char* getLotusDB(LotusDB *db, const char* key) {
     return getWalEntryFromSkipList(db->Memtable->skip_list, key)->value;
+}
+
+void delLotusDb(LotusDB* db) {
+    delMemtable(db->Memtable);
+    free(db);
 }
