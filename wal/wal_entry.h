@@ -3,11 +3,19 @@
 
 #include "pch.h"
 
+// The WalEntry looks like:
+// +-------+-----------+----------+------------+-------+---------+
+// |  crc  | timestamp | key_size | value_size |  key  |  value  |
+// +-------+-----------+----------+------------+-------+---------+
+// |---4---|-----4-----|----4-----|-----4------|
+// |------------------header-------------------|
+//         |----------------------crc check----------------------|
+
 typedef struct wal_header {
     int32_t crc;
     int32_t timestamp;
-    uint32_t key_size;
-    uint32_t value_size;
+    size_t key_size;
+    size_t value_size;
 } WalHeader;
 
 typedef struct wal_entry {
