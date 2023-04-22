@@ -1,5 +1,5 @@
 #include "LotusDB.h"
-#include <stdio.h>
+
 
 int main() {
     LotusDB* db = initLotusDb();

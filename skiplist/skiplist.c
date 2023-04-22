@@ -1,13 +1,9 @@
 #include "skiplist.h"
-#include "pch.h"
-#include "wal_entry.h"
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
 
-const uint32_t SKIP_LIST_MAX_LEVEL = 32;
 
-uint32_t getSkipListNodeRandomLevel() {
+#define SKIP_LIST_MAX_LEVEL 32
+
+static inline uint32_t getSkipListNodeRandomLevel() {
     uint32_t level = 1;
     while (rand() & 0x1) 				        // 抛硬币思想，随机数为奇数的概率可认为是1/2
         ++level;
@@ -37,8 +33,8 @@ SkipListNode* initSkipListNode(uint32_t level, WalEntry* wal_entry) {
     return skip_list_node;
 }
 
-void addWalEntryToSkipList(SkipList* skip_list, WalEntry* wal_entry) {
-    WalEntry* temp = getWalEntryFromSkipList(skip_list, wal_entry->key);
+void addSkipList(SkipList* skip_list, WalEntry* wal_entry) {
+    WalEntry* temp = getSkipList(skip_list, wal_entry->key);
     if (temp) { // 已经有了这个key, 直接替换value
         free(temp->value);
         temp->value = strdup(wal_entry->value);
@@ -69,7 +65,7 @@ void addWalEntryToSkipList(SkipList* skip_list, WalEntry* wal_entry) {
     ++skip_list->length;								// 完成插入动作后，更新跳跃表长度
 }
 
-WalEntry* getWalEntryFromSkipList(SkipList* skip_list, const char* key) {
+WalEntry* getSkipList(SkipList* skip_list, const char* key) {
     SkipListNode* p = skip_list->head;
     int32_t index = skip_list->level - 1;
     for (int32_t i = index; i >= 0; i--) {
@@ -86,22 +82,6 @@ WalEntry* getWalEntryFromSkipList(SkipList* skip_list, const char* key) {
         return p->levels[i].next->wal_entry;
     }
     return NULL;
-}
-
-void readSkipListFromWal(SkipList* skip_list, FILE* wal) {
-    WalEntry* wal_entry = readWalEntryFromWal(wal);
-    while (wal_entry) {
-        addWalEntryToSkipList(skip_list, wal_entry);
-        wal_entry = readWalEntryFromWal(wal);
-    }
-}
-
-void writeSkipListToWal(SkipList* skip_list, FILE* wal) {
-    SkipListNode* skip_list_node = skip_list->head->levels[0].next;
-    while (skip_list_node) {
-        writeWalEntryToWal(skip_list_node->wal_entry, wal);
-        skip_list_node = skip_list_node->levels[0].next;
-    }
 }
 
 void delSkipList(SkipList* skip_list) {

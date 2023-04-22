@@ -1,10 +1,5 @@
 #include "wal_entry.h"
 
-#include "pch.h"
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 // The WalEntry looks like:
 // +-------+-----------+----------+------------+-------+---------+
@@ -14,24 +9,47 @@
 // |------------------header-------------------|
 //         |----------------------crc check----------------------|
 
+static uint32_t getWalEntryCrc(WalEntry* wal_entry) {
+    static byte buffer[sizeof(WalHeader) + KEY_MAX_LEN + VALUE_MAX_LEN];
+    size_t index = 0;
+
+    memcpy(&buffer[index], &wal_entry->header.timestamp, sizeof(wal_entry->header.timestamp));
+    index += sizeof(wal_entry->header.timestamp);
+
+    memcpy(&buffer[index], &wal_entry->header.key_size, sizeof(wal_entry->header.key_size));
+    index += sizeof(wal_entry->header.key_size);
+
+    memcpy(&buffer[index], &wal_entry->header.value_size, sizeof(wal_entry->header.value_size));
+    index += sizeof(wal_entry->header.value_size);
+
+    memcpy(&buffer[index], wal_entry->key, strlen(wal_entry->key) + 1);
+    index += strlen(wal_entry->key) + 1;
+
+    memcpy(&buffer[index], wal_entry->value, strlen(wal_entry->value) + 1);
+    index += strlen(wal_entry->value) + 1;
+
+    return crc32(buffer, index);
+}
+
 WalEntry* initWalEntry(const char* key, const char* value) {
-    if (strlen(key) > KEY_MAX_LEN || strlen(value) > VALUE_MAX_LEN)
+    if (strlen(key) + 1 > KEY_MAX_LEN || sizeof(value) + 1 > VALUE_MAX_LEN)
         return NULL;
 
     WalEntry* wal_entry = (WalEntry*) malloc(sizeof(WalEntry));
 
-    wal_entry->header.crc = 0;          // TODO: crc
     wal_entry->header.timestamp = getTimestamp();
-    wal_entry->header.key_size = strlen(key);
-    wal_entry->header.value_size = strlen(value);
+    wal_entry->header.key_size = strlen(key) + 1;
+    wal_entry->header.value_size = strlen(value) + 1;
 
     wal_entry->key = strdup(key);
     wal_entry->value = strdup(value);
 
+    wal_entry->header.crc = getWalEntryCrc(wal_entry);
+
     return wal_entry;
 }
 
-WalEntry* readWalEntryFromWal(FILE *wal) {
+WalEntry* loadWalEntry(FILE *wal) {
     WalEntry* wal_entry = (WalEntry*) malloc(sizeof(WalEntry));
 
     fread(&wal_entry->header, sizeof(WalHeader), 1, wal);
@@ -42,22 +60,12 @@ WalEntry* readWalEntryFromWal(FILE *wal) {
     fread(wal_entry->key, sizeof(char), wal_entry->header.key_size, wal);
     fread(wal_entry->value, sizeof(char), wal_entry->header.value_size, wal);
 
+
     if (feof(wal)) {
         free(wal_entry);
         return NULL;
     } else {
+        assert(getWalEntryCrc(wal_entry) == wal_entry->header.crc);
         return wal_entry;
     }
-}
-
-void writeWalEntryToWal(WalEntry* wal_entry, FILE *wal) {
-    fwrite(&(wal_entry->header), sizeof(wal_entry->header), 1, wal);
-    fwrite(wal_entry->key, sizeof(char), wal_entry->header.key_size, wal);
-    fwrite(wal_entry->value, sizeof(char), wal_entry->header.value_size, wal);
-}
-
-void delWalEntry(WalEntry* wal_entry) {
-    free(wal_entry->key);
-    free(wal_entry->value);
-    free(wal_entry);
 }

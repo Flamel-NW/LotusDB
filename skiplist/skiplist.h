@@ -1,11 +1,8 @@
 #ifndef SKIPLIST_H
 #define SKIPLIST_H
 
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "pch.h"
+
 #include "wal_entry.h"
 
 typedef struct skip_list_node {
@@ -27,13 +24,9 @@ SkipListNode* initSkipListNode();
 
 SkipList* initSkipList();
 
-void addWalEntryToSkipList(SkipList* skip_list, WalEntry* wal_entry);
+void addSkipList(SkipList* skip_list, WalEntry* wal_entry);
 
-WalEntry* getWalEntryFromSkipList(SkipList* skip_list, const char* key);
-
-void readSkipListFromWal(SkipList* skip_list, FILE* wal);
-
-void writeSkipListToWal(SkipList* skip_list, FILE* wal);
+WalEntry* getSkipList(SkipList* skip_list, const char* key);
 
 void delSkipList(SkipList* skip_list);
 
