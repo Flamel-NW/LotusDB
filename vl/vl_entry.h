@@ -3,6 +3,9 @@
 
 #include "pch.h"
 
+#include "wal_entry.h"
+#include "index.h"
+
 // The VlEntry looks like:
 // +-------+-----------+------------+---------+
 // |  crc  | timestamp | value_size |  value  |
@@ -20,5 +23,7 @@ typedef struct vl_entry {
     char value[];
 } VlEntry;
 #pragma pack()
+
+Metadata* addVlEntry(WalEntry* wal_entry);
 
 #endif

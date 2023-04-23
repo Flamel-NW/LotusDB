@@ -11,6 +11,8 @@
 // |------------------header-------------------|
 //         |----------------------crc check----------------------|
 
+// value_size == 0 && value == NULL 代表删除这个key
+
 #pragma pack(4)
 typedef struct wal_header {
     uint32_t crc;
@@ -35,17 +37,7 @@ WalEntry* initWalEntry(const char* key, const char* value);
 
 WalEntry* loadWalEntry(FILE* wal);
 
-
-static inline void saveWalEntry(WalEntry* wal_entry, FILE *wal) {
-    fwrite(&(wal_entry->header), sizeof(wal_entry->header), 1, wal);
-    fwrite(wal_entry->key, sizeof(char), wal_entry->header.key_size, wal);
-    fwrite(wal_entry->value, sizeof(char), wal_entry->header.value_size, wal);
-}
-
-static inline void delWalEntry(WalEntry* wal_entry) {
-    free(wal_entry->key);
-    free(wal_entry->value);
-    free(wal_entry);
-}
+void saveWalEntry(WalEntry* wal_entry, FILE *wal);
+void delWalEntry(WalEntry* wal_entry);
 
 #endif

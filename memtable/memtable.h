@@ -3,6 +3,7 @@
 
 #include "skiplist.h"
 #include "wal_entry.h"
+#include "index.h"
 
 typedef struct memtable {
     SkipList* skip_list;
@@ -13,12 +14,15 @@ typedef struct memtable {
 
 Memtable* initMemtable();
 
-void addMemtable(Memtable* memtable, WalEntry* wal_entry);
+// 添加 & 修改 满了返回false
+bool addMemtable(Memtable* memtable, const char* key, const char* value);
 
-static inline WalEntry* getMemtable(Memtable* memtable, const char* key) {
-    return getSkipList(memtable->skip_list, key);
-}
+WalEntry* getMemtable(Memtable* memtable, const char* key);
+
+void removeMemtable(Memtable* memtable, const char* key);
 
 void delMemtable(Memtable* memtable);
+
+Memtable* makeImmutable(Memtable* memtable, BTree* b_tree);
 
 #endif

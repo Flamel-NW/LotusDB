@@ -24,8 +24,12 @@ typedef struct metadata {
 } Metadata;
 #pragma pack()
 
+static inline size_t getMetadataSize(Metadata* metadata) {
+    return sizeof(Metadata) + metadata->key_size;
+}
+
 static inline uint32_t getMetadataCrc(Metadata* metadata) {
-    return crc32((const byte*) metadata, sizeof(Metadata) + metadata->key_size);
+    return crc32((const byte*) metadata, getMetadataSize(metadata));
 }
 
 #define B_TREE_LEAF_SIZE    PAGE_SIZE

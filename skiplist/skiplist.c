@@ -1,5 +1,7 @@
 #include "skiplist.h"
 
+#include "vl_entry.h"
+
 
 #define SKIP_LIST_MAX_LEVEL 32
 
@@ -84,14 +86,36 @@ WalEntry* getSkipList(SkipList* skip_list, const char* key) {
     return NULL;
 }
 
+void traverseSkipList(SkipList* skip_list, void (*func) (SkipListNode* skip_list_node)) {
+    SkipListNode* now = skip_list->head->levels[0].next;
+    while (now) {
+        func(now);
+        now = now->levels[0].next;
+    }
+}
+
 void delSkipList(SkipList* skip_list) {
     SkipListNode* now = skip_list->head->levels[0].next;
     SkipListNode* pre;
     while (now) {
         pre = now;
         now = now->levels[0].next;
+        delWalEntry(pre->wal_entry);
         free(pre);
     }
     free(skip_list->head);
     free(skip_list);
+}
+
+void flushSkipList(SkipList* skip_list, BTree* b_tree) {
+    SkipListNode* now = skip_list->head->levels[0].next;
+    SkipListNode* pre;
+    while (now) {
+        pre = now;
+        now = now->levels[0].next;
+        
+        Metadata* metadata = addVlEntry(pre->wal_entry);
+        addBTree(b_tree, metadata);
+        free(metadata);
+    }
 }
