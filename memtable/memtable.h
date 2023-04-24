@@ -1,6 +1,8 @@
 #ifndef MEMTABLE_H
 #define MEMTABLE_H
 
+#include "pch.h"
+
 #include "skiplist.h"
 #include "wal_entry.h"
 #include "index.h"

@@ -8,17 +8,17 @@
 // +-------+-------+--------+-----------+----------+-------+
 // |  crc  | vl_id | offset | timestamp | key_size |  key  |
 // +-------+-------+--------+-----------+----------+-------+
-// |---4---|---4---|---4----|-----4-----|----8-----|
+// |---4---|---8---|---4----|-----8-----|----8-----|
 // |--------------------header---------------------|
 //         |-------------------crc check-------------------|
 
 #pragma pack(4)
 typedef struct metadata {
     uint32_t crc;
-    uint32_t vl_id;
-    int32_t offset;
+    uint64_t vl_id;
+    uint32_t offset;
 
-    int32_t timestamp;
+    uint64_t timestamp;
     size_t key_size;
     char key[];
 } Metadata;
@@ -29,19 +29,20 @@ static inline size_t getMetadataSize(Metadata* metadata) {
 }
 
 static inline uint32_t getMetadataCrc(Metadata* metadata) {
-    return crc32((const byte*) metadata, getMetadataSize(metadata));
+    return crc32(((const byte*) metadata) + CRC_SHIFT, 
+        getMetadataSize(metadata) - CRC_SHIFT);
 }
 
 #define B_TREE_LEAF_SIZE    PAGE_SIZE
 #define B_TREE_MAX_LEAVES   PAGE_SIZE
 
 typedef struct b_tree_leaf {
-    int32_t file_id;
+    uint64_t file_id;
     char* first_key;
 
     size_t size;
     // 下标 0 ~ size-1 是size个Metadata的offsets, 下标 size 是末尾的offsets
-    uint32_t offsets[B_TREE_LEAF_SIZE / sizeof(Metadata)];
+    size_t offsets[B_TREE_LEAF_SIZE / sizeof(Metadata)];
 
     // Metadata为含有柔性数组成员的结构体 需要通过offsets灵活定位
     // fd为-1, metadata为NULL 代表未映射文件
@@ -65,5 +66,7 @@ void addBTree(BTree* b_tree, Metadata* metadata);
 bool getBTree(BTree* b_tree, const char* key, Metadata* ret);
 
 bool removeBTree(BTree* b_tree, const char* key);
+
+void delBTree(BTree* b_tree);
 
 #endif

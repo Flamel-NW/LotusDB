@@ -1,8 +1,4 @@
 #include "memtable.h"
-#include "pch.h"
-#include "skiplist.h"
-#include "wal_entry.h"
-
 
 
 Memtable* initMemtable() {
@@ -23,6 +19,7 @@ Memtable* initMemtable() {
         fclose(memtable->fp);
         memtable->fp = fopen(WAL_NAME, "ab");
     } else {
+        memtable->size = 0;
         memtable->fp = fopen(WAL_NAME, "wb");
     }
     return memtable;
@@ -58,6 +55,8 @@ void delMemtable(Memtable* memtable) {
 }
 
 Memtable* makeImmutable(Memtable* memtable, BTree* b_tree) {
+    STDERR_FUNC_LINE();
+
     pthread_rwlock_wrlock(&memtable->rwlock);
     flushSkipList(memtable->skip_list, b_tree);
     pthread_rwlock_unlock(&memtable->rwlock);

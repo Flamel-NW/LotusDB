@@ -2,8 +2,8 @@
 
 #include "vl_entry.h"
 
-
 #define SKIP_LIST_MAX_LEVEL 32
+
 
 static inline uint32_t getSkipListNodeRandomLevel() {
     uint32_t level = 1;
@@ -81,7 +81,9 @@ WalEntry* getSkipList(SkipList* skip_list, const char* key) {
                 strncmp(p->levels[i].next->wal_entry->key, key, KEY_MAX_LEN) > 0) 
             continue;
         
-        return p->levels[i].next->wal_entry;
+        WalEntry* wal_entry = initWalEntry(p->levels[i].next->wal_entry->key, 
+            p->levels[i].next->wal_entry->value);
+        return wal_entry;
     }
     return NULL;
 }

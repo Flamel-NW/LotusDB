@@ -6,6 +6,7 @@ OBJECTS := $(SOURCES:.c=.o)
 
 LOGDIR := ./log
 VLDIR := $(LOGDIR)/vl
+INDEXDIR := $(LOGDIR)/index
 
 # 自己写了一个python自动检测头文件路径的脚本小工具
 
@@ -24,10 +25,16 @@ CFLAGS := -g -Wall -Werror -Wno-unused
 $(TARGET): $(OBJECTS) 
 	mkdir -p $(LOGDIR)
 	mkdir -p $(VLDIR)
+	mkdir -p $(INDEXDIR)
 	$(CC) $(CFLAGS) $(INCLUDE) $^ -o $@
 
 clean:
 	rm -f $(OBJECTS) $(TARGET)
+
+init:
+	make clean
+	rm -rf $(LOGDIR)
+	make
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(INCLUDE) -o $@ -c $<

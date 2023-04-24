@@ -32,15 +32,17 @@
 } while(0)
 
 #define STDERR_FUNC_LINE() \
-    STDERR("file: %s, func: %s, line: %d", __FILE__, __func__, __LINE__);
+    STDERR("file: %s, func: %s, line: %d", __FILE__, __func__, __LINE__)
 
 typedef unsigned char byte;
 
-static inline int32_t getTimestamp() {
+static inline uint64_t getTimestamp() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     return tv.tv_sec * 1000 + tv.tv_usec;
 }
+
+#define CRC_SHIFT   4
 
 static const uint32_t crc32_code[] = {
     0x00000000, 0x77073096, 0xee0e612c, 0x990951ba,
@@ -110,11 +112,11 @@ static const uint32_t crc32_code[] = {
 };
 
 static inline uint32_t crc32(const byte* buf, size_t size) {
-    uint32_t i, crc;
-    crc = 0xFFFFFFFF;
+    uint32_t crc = 0xFFFFFFFF;
+    uint32_t i;
     for (i = 0; i < size; i++)
         crc = crc32_code[(crc ^ buf[i]) & 0xff] ^ (crc >> 8);
-    return crc^0xFFFFFFFF;
+    return crc ^ 0xFFFFFFFF;
 }
 
 #endif

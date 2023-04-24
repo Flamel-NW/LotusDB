@@ -2,6 +2,7 @@
 #define LOTUSDB_H
 
 #include "pch.h"
+
 #include "memtable.h"
 #include "index.h"
 #include "vl_entry.h"
@@ -14,7 +15,7 @@ typedef struct lotus_db {
 LotusDB* initLotusDb();
 
 void addLotusDB(LotusDB* db, const char* key, const char* value);
-char* getLotusDB(LotusDB* db, const char* key);
+bool getLotusDB(LotusDB* db, const char* key, char* value);
 void removeLotusDB(LotusDB* db, const char* key);
 void delLotusDb(LotusDB* db);
 
