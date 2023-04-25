@@ -27,12 +27,12 @@ Memtable* initMemtable() {
 
 bool addMemtable(Memtable* memtable, const char* key, const char* value) {
     WalEntry* wal_entry = initWalEntry(key, value);
-    size_t wal_entry_size = getWalEntrySize(wal_entry);
-    if (memtable->size + wal_entry_size < PAGE_SIZE) {
+    uint32_t wal_size = getWalEntrySize(wal_entry);
+    if (memtable->size + wal_size < PAGE_SIZE) {
         pthread_rwlock_wrlock(&memtable->rwlock);
-        addSkipList(memtable->skip_list, wal_entry);
-        memtable->size += wal_entry_size;
+        memtable->size += wal_size;
         saveWalEntry(wal_entry, memtable->fp);
+        addSkipList(memtable->skip_list, wal_entry);
         pthread_rwlock_unlock(&memtable->rwlock);
         return true;
     } else {
@@ -44,8 +44,8 @@ WalEntry* getMemtable(Memtable* memtable, const char* key) {
     return getSkipList(memtable->skip_list, key);
 }
 
-void removeMemtable(Memtable* memtable, const char* key) {
-    addMemtable(memtable, key, NULL);
+bool removeMemtable(Memtable* memtable, const char* key) {
+    return addMemtable(memtable, key, NULL);
 }
 
 void delMemtable(Memtable* memtable) {

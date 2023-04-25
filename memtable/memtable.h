@@ -11,7 +11,7 @@ typedef struct memtable {
     SkipList* skip_list;
     pthread_rwlock_t rwlock;
     FILE* fp;
-    size_t size;
+    uint32_t size;
 } Memtable;
 
 Memtable* initMemtable();
@@ -21,7 +21,7 @@ bool addMemtable(Memtable* memtable, const char* key, const char* value);
 
 WalEntry* getMemtable(Memtable* memtable, const char* key);
 
-void removeMemtable(Memtable* memtable, const char* key);
+bool removeMemtable(Memtable* memtable, const char* key);
 
 void delMemtable(Memtable* memtable);
 
