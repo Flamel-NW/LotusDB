@@ -7,7 +7,7 @@
 
 static char g_filename[32];
 
-static void loadBTreeLeaf(BTreeLeaf* b_tree_leaf) {
+void loadBTreeLeaf(BTreeLeaf* b_tree_leaf) {
     if (b_tree_leaf->fd == -1 && !(b_tree_leaf->metadata)) {
         sprintf(g_filename, "%s/%lx", INDEX_PATH, b_tree_leaf->file_id);
         b_tree_leaf->fd = open(g_filename, O_RDWR);
@@ -16,39 +16,13 @@ static void loadBTreeLeaf(BTreeLeaf* b_tree_leaf) {
     }
 }
 
-static void saveBTreeLeaf(BTreeLeaf* b_tree_leaf) {
+void saveBTreeLeaf(BTreeLeaf* b_tree_leaf) {
     if (b_tree_leaf->fd != -1 && b_tree_leaf->metadata) {
         close(b_tree_leaf->fd);
         b_tree_leaf->fd = -1;
 
         munmap(b_tree_leaf->metadata, B_TREE_LEAF_SIZE);
         b_tree_leaf->metadata = NULL;
-    }
-}
-
-// 获取BTreeLeaf中的第n个Metadata
-static inline Metadata* getMetadata(BTreeLeaf* b_tree_leaf, uint32_t n) {
-    assert(n >= 0 && n <= b_tree_leaf->size);
-    return (Metadata*) &b_tree_leaf->metadata[b_tree_leaf->offsets[n]];
-}
-
-// debug
-static void printBTreeLeaf(BTreeLeaf* b_tree_leaf) {
-    STDERR_FUNC_LINE();
-    STDERR("file_id: %lx", b_tree_leaf->file_id);
-    if (b_tree_leaf->first_key)
-        STDERR("first_key: %s", b_tree_leaf->first_key);
-    STDERR("size: %u", b_tree_leaf->size);
-    STDERR("end offset: %u", b_tree_leaf->offsets[b_tree_leaf->size]);
-    if (b_tree_leaf->fd == -1 && !b_tree_leaf->metadata) {
-        STDERR("not loaded");
-    } else {
-        for (int32_t i = 0; i < b_tree_leaf->size; i++) {
-            STDERR("No %d offset: %u", i, b_tree_leaf->offsets[i]);
-            STDERR("metadata key: %s\n", getMetadata(b_tree_leaf, i)->key);
-            char* key = getMetadata(b_tree_leaf, i)->key;
-            assert(key[0] == 'k' && key[1] == 'e' && key[2] == 'y' && key[3] == ':' && key[4] == ' ');
-        }
     }
 }
 
@@ -132,7 +106,6 @@ static void addBTreeLeaf(BTreeLeaf* b_tree_leaf, Metadata* metadata) {
         }
 
         byte* next = (byte*) getMetadata(b_tree_leaf, l);
-        Metadata* debug = getMetadata(b_tree_leaf, l);
         memmove(next + meta_size, next, 
             b_tree_leaf->offsets[b_tree_leaf->size] - b_tree_leaf->offsets[l]);
         memcpy(next, metadata, meta_size);
@@ -180,6 +153,8 @@ static bool removeBTreeLeaf(BTreeLeaf* b_tree_leaf, const char* key) {
             for (int32_t i = m; i < b_tree_leaf->size; i++)
                 b_tree_leaf->offsets[i] = b_tree_leaf->offsets[i + 1] - meta_size;
             b_tree_leaf->size--;
+            // 清空一部分区域 防止下次运行的时候又被load上来了
+            memset(getMetadata(b_tree_leaf, b_tree_leaf->size), 0, sizeof(Metadata));
             return true;
         }
     }
@@ -226,8 +201,6 @@ static BTreeLeaf* switchCurrLeaf(BTree* b_tree, const char* key) {
 
 
 static void splitCurrLeaf(BTree* b_tree) {
-    STDERR_FUNC_LINE();
-
     BTreeLeaf* curr_leaf = getCurrLeaf(b_tree);
     BTreeLeaf* new_leaf = initBTreeLeaf();
     BTreeLeaf* next_leaf = b_tree->leaves[b_tree->curr_leaf + 1];
@@ -259,8 +232,6 @@ static void splitCurrLeaf(BTree* b_tree) {
 }
 
 static void mergeCurrLeaf(BTree* b_tree) {
-    STDERR_FUNC_LINE();
-
     BTreeLeaf* curr_leaf = getCurrLeaf(b_tree);
     BTreeLeaf* del_leaf = b_tree->leaves[b_tree->curr_leaf + 1];
     BTreeLeaf* next_leaf = b_tree->leaves[b_tree->curr_leaf + 2];

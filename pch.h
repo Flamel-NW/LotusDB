@@ -39,7 +39,7 @@ typedef unsigned char byte;
 static inline uint64_t getTimestamp() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
-    return tv.tv_sec * 1000 + tv.tv_usec;
+    return tv.tv_sec * 1000 * 1000 + tv.tv_usec;
 }
 
 #define CRC_SHIFT   4

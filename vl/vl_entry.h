@@ -39,4 +39,6 @@ VlEntry* getVlEntry(Metadata* metadata);
 
 void saveVlFile();
 
+uint64_t initVlFile();
+
 #endif

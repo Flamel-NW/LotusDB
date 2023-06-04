@@ -55,8 +55,6 @@ void delMemtable(Memtable* memtable) {
 }
 
 Memtable* makeImmutable(Memtable* memtable, BTree* b_tree) {
-    STDERR_FUNC_LINE();
-
     pthread_rwlock_wrlock(&memtable->rwlock);
     flushSkipList(memtable->skip_list, b_tree);
     pthread_rwlock_unlock(&memtable->rwlock);

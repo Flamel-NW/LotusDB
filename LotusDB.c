@@ -1,5 +1,7 @@
 #include "LotusDB.h"
 
+#include "gc.h"
+
 
 LotusDB* initLotusDb() {
     LotusDB* db = (LotusDB*) malloc(sizeof(LotusDB));
@@ -11,6 +13,7 @@ LotusDB* initLotusDb() {
 // 添加 & 修改
 void addLotusDB(LotusDB* db, const char* key, const char* value) {
     assert(key && strlen(key));
+    assert(value && strlen(value));
     if (!addMemtable(db->memtable, key, value)) {
         db->memtable = makeImmutable(db->memtable, db->index);
         addMemtable(db->memtable, key, value);
@@ -56,4 +59,12 @@ void delLotusDb(LotusDB* db) {
     delBTree(db->index);
     saveVlFile();
     free(db);
+}
+
+void mergeLotusDb(LotusDB* db) {
+    gc(db->index);
+}
+
+void testMergeLotusDb(LotusDB* db) {
+    fakeGc(db->index);
 }

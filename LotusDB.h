@@ -18,5 +18,8 @@ void addLotusDB(LotusDB* db, const char* key, const char* value);
 bool getLotusDB(LotusDB* db, const char* key, char* value);
 void removeLotusDB(LotusDB* db, const char* key);
 void delLotusDb(LotusDB* db);
+void mergeLotusDb(LotusDB* db);
+
+void testMergeLotusDb(LotusDB* db);
 
 #endif

@@ -59,6 +59,15 @@ typedef struct b_tree_leaf {
     byte* metadata;
 } BTreeLeaf;
 
+void loadBTreeLeaf(BTreeLeaf* b_tree_leaf);
+void saveBTreeLeaf(BTreeLeaf* b_tree_leaf);
+
+// 获取BTreeLeaf中的第n个Metadata
+static inline Metadata* getMetadata(BTreeLeaf* b_tree_leaf, uint32_t n) {
+    assert(n >= 0 && n <= b_tree_leaf->size);
+    return (Metadata*) &b_tree_leaf->metadata[b_tree_leaf->offsets[n]];
+}
+
 typedef struct b_tree {
     uint32_t size;              // 叶子数量
     uint32_t curr_leaf;         // 当前打开的叶子下标

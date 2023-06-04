@@ -8,24 +8,28 @@ static uint32_t g_curr_vl_offset;
 static byte g_curr_vl_data[VL_FILE_MAX_SIZE];
 
 static char g_filename[32];
-    
+
+uint64_t initVlFile() {
+    uint64_t ret = g_curr_vl_id;
+
+    sprintf(g_filename, "%s/%lx", VL_PATH, g_curr_vl_id);
+    FILE* vl_file = fopen(g_filename, "wb");
+    fwrite(g_curr_vl_data, sizeof(byte), VL_FILE_MAX_SIZE, vl_file);
+    fclose(vl_file);
+
+    g_curr_vl_id = getTimestamp();
+    g_curr_vl_offset = 0;
+
+    return ret;
+}
 
 Metadata* addVlEntry(WalEntry* wal_entry) {
     if (!g_curr_vl_id) 
         g_curr_vl_id = getTimestamp();
 
     uint32_t vl_size = sizeof(VlEntry) + wal_entry->value_size;
-    if (vl_size + g_curr_vl_offset > VL_FILE_MAX_SIZE) {
-        STDERR_FUNC_LINE();
-
-        sprintf(g_filename, "%s/%lx", VL_PATH, g_curr_vl_id);
-        FILE* vl_file = fopen(g_filename, "wb");
-        fwrite(g_curr_vl_data, sizeof(byte), VL_FILE_MAX_SIZE, vl_file);
-        fclose(vl_file);
-
-        g_curr_vl_id = getTimestamp();
-        g_curr_vl_offset = 0;
-    }
+    if (vl_size + g_curr_vl_offset > VL_FILE_MAX_SIZE) 
+        initVlFile();
 
     VlEntry* vl_entry = (VlEntry*) &g_curr_vl_data[g_curr_vl_offset];
     vl_entry->timestamp = wal_entry->timestamp;
@@ -55,6 +59,8 @@ VlEntry* getVlEntry(Metadata* metadata) {
     } else {
         sprintf(g_filename, "%s/%lx", VL_PATH, metadata->vl_id);
         FILE* vl_file = fopen(g_filename, "rb");
+        if (!vl_file)
+            return NULL;
         fseek(vl_file, metadata->offset, SEEK_SET);
 
         VlEntry vl_header;
