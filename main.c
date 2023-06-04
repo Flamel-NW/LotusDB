@@ -8,6 +8,7 @@ int main() {
     char test_value[VALUE_MAX_LEN];
     char temp_value[VALUE_MAX_LEN];
 
+    // 写入16k个KV对
     db = initLotusDb();
     for (int32_t i = 0; i < PAGE_SIZE; i++) {
         sprintf(test_key, "key: %d", i);
@@ -20,6 +21,7 @@ int main() {
     delLotusDb(db);
     db = initLotusDb();
 
+    // 查询所有KV对
     for (int32_t i = 0; i < PAGE_SIZE; i++) {
         sprintf(test_key, "key: %d", i);
         memset(test_value, 0, sizeof(test_value));
@@ -35,6 +37,7 @@ int main() {
     delLotusDb(db);
     db = initLotusDb();
 
+    // 删除奇数编号的KV对
     for (int32_t i = 0; i < PAGE_SIZE; i++) {
         if (i % 2) {
             sprintf(test_key, "key: %d", i);
@@ -46,10 +49,10 @@ int main() {
         }
     }
 
-
     delLotusDb(db);
     db = initLotusDb();
 
+    // 查询所有KV对
     for (int32_t i = 0; i < PAGE_SIZE; i++) {
         sprintf(test_key, "key: %d", i);
         if (getLotusDB(db, test_key, test_value)) {
@@ -63,13 +66,13 @@ int main() {
         }
     }
 
-    STDERR("GC begin");
-    uint64_t timestamp = getTimestamp();
-    mergeLotusDb(db);
-    STDERR("GC end");
-    STDERR("GC time: %ldms", (getTimestamp() - timestamp) / 1000);
+    // STDERR("GC begin");
+    // uint64_t timestamp = getTimestamp();
+    // mergeLotusDb(db);
+    // STDERR("GC end");
+    // STDERR("GC time: %ldms", (getTimestamp() - timestamp) / 1000);
 
-    // STDERR("\nFake GC begin");
+    // STDERR("Fake GC begin");
     // uint64_t timestamp = getTimestamp();
     // testMergeLotusDb(db);
     // STDERR("Fake GC end");
